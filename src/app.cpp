@@ -1,9 +1,53 @@
 #include <iostream>
+#include <fstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GL/glut.h>
+#include <string>
+#include <sstream>
 
 using namespace std;
+
+struct ShaderProgramSource {
+    string vertextSource;
+    string fragmentSource;
+};
+
+static ShaderProgramSource parseShader(const string &filepath){
+    ifstream stream(filepath);
+    if(!stream){
+        cout << "[ERR] : error reading file" << endl;
+        return {
+            "", ""
+        }; 
+    }
+
+    enum class ShaderType{
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    string line;
+    stringstream ss[2];
+    ShaderType shaderType = ShaderType::NONE;
+    while(getline(stream, line)){
+        // check for shader definition
+        if(line.find("#shader") != string::npos){
+            // find shader type
+            if(line.find("vertex") != string::npos){
+                shaderType = ShaderType::VERTEX;
+            } else if(line.find("fragment") != string::npos){
+                shaderType = ShaderType::FRAGMENT;
+            }
+        } else {
+            ss[(int)shaderType] << line << endl;
+        }
+    }
+
+    return {
+        ss[0].str(),
+        ss[1].str()
+    };
+}
 
 static int compileShader(unsigned int type, const string &source){
     unsigned int id = glCreateShader(type);
@@ -92,27 +136,8 @@ int main(void)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *) 0);
     glEnableVertexAttribArray(0);
 
-    string vertexShader = 
-        "#version 330 core\n"
-        "#extension GL_ARB_separate_shader_objects : enable\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
-
-    string fragmentShader = 
-        "#version 330 core\n"
-        "#extension GL_ARB_separate_shader_objects : enable\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(0.2, 0.4, 0.7, 1.0);\n"
-        "}\n";
-
-    unsigned int shader = createShader(vertexShader, fragmentShader);
+    ShaderProgramSource source = parseShader("../res/shaders/basic.glsl");
+    unsigned int shader = createShader(source.vertextSource, source.fragmentSource);
     glUseProgram(shader);
 
     /* Loop until the user closes the window */
