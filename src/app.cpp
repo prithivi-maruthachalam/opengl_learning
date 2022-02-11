@@ -121,20 +121,33 @@ int main(void)
 
 
     // triangle vertices
-    float triangle_positions[6] = {
-        -0.5f, -0.5f,
-        0.0f, 0.5f,
-        0.5f, -0.5f
+    float triangle_positions[8] = {
+        -0.5f, -0.5f,   // 0
+        0.5f, -0.5f,    // 1
+        0.5f, 0.5f,     // 2
+        -0.5f, 0.5f,    // 3
+    };
+
+    // indices for index buffer
+    unsigned int triangle_indices[6] = {
+        0, 1, 2, 
+        2, 3, 0
     };
 
     // generate buffer for triangle
     unsigned int triangle_buffer;
     glGenBuffers(1, &triangle_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, triangle_buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), triangle_positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), triangle_positions, GL_STATIC_DRAW);
+
     // vertex attribute : postition
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *) 0);
     glEnableVertexAttribArray(0);
+
+    unsigned int ibuf;
+    glGenBuffers(1, &ibuf);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), triangle_indices, GL_STATIC_DRAW);
 
     ShaderProgramSource source = parseShader("../res/shaders/basic.glsl");
     unsigned int shader = createShader(source.vertextSource, source.fragmentSource);
@@ -146,8 +159,8 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
