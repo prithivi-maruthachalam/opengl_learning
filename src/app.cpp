@@ -4,9 +4,32 @@
 #include <GLFW/glfw3.h>
 #include <GL/glut.h>
 #include <string>
+#include <csignal>
 #include <sstream>
 
+#define ASSERT(x) if (!(x)) raise(SIGTRAP)
+#define GL_CALL(x) glClearError();\
+    x;\
+    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+
 using namespace std;
+
+static void glClearError(){
+    while(glGetError() != GL_NO_ERROR)
+        ;
+}
+
+static bool glLogCall(const char* functionName, const char* fileName, int line){
+    while(GLenum error = glGetError()){
+        cout << "[ERR] : OpenGL Error(" << error << ")" << endl;
+        cout << "\tin: " << fileName << endl;
+        cout << "\tat: " << functionName << endl;
+        cout << "\ton: " << line << endl << endl;
+        return false;
+    }
+
+    return true;
+}
 
 struct ShaderProgramSource {
     string vertextSource;
@@ -50,10 +73,10 @@ static ShaderProgramSource parseShader(const string &filepath){
 }
 
 static int compileShader(unsigned int type, const string &source){
-    unsigned int id = glCreateShader(type);
+    GL_CALL(unsigned int id = glCreateShader(type));
     const char* src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
+    GL_CALL(glShaderSource(id, 1, &src, nullptr));
+    GL_CALL(glCompileShader(id));
 
     int res;
     glGetShaderiv(id, GL_COMPILE_STATUS, &res);
@@ -63,7 +86,7 @@ static int compileShader(unsigned int type, const string &source){
         char* msg = (char *)alloca(len * sizeof(char));
         glGetShaderInfoLog(id, len, &len, msg); 
         cout << "[ERR] : failed to compile " << ((type == GL_VERTEX_SHADER) ? "vertex" : "fragment") << " shader | " << msg << endl;
-        glDeleteShader(id);
+        GL_CALL(glDeleteShader(id));
         return -1;
     }
 
@@ -71,19 +94,19 @@ static int compileShader(unsigned int type, const string &source){
 }
 
 static unsigned int createShader(const string &vertexShader, const string &fragmentShader){
-    unsigned int program = glCreateProgram();
+    GL_CALL(unsigned int program = glCreateProgram());
 
     unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GL_CALL(glAttachShader(program, vs));
+    GL_CALL(glAttachShader(program, fs));
+    GL_CALL(glLinkProgram(program));
+    GL_CALL(glValidateProgram(program));
 
     // delete intermediate build files
-    glDeleteShader(fs);
-    glDeleteShader(fs);
+    GL_CALL(glDeleteShader(fs));
+    GL_CALL(glDeleteShader(fs));
 
     return program;
 }
@@ -136,31 +159,31 @@ int main(void)
 
     // generate buffer for triangle
     unsigned int triangle_buffer;
-    glGenBuffers(1, &triangle_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, triangle_buffer);
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), triangle_positions, GL_STATIC_DRAW);
+    GL_CALL(glGenBuffers(1, &triangle_buffer));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, triangle_buffer));
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), triangle_positions, GL_STATIC_DRAW));
 
     // vertex attribute : postition
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *) 0);
-    glEnableVertexAttribArray(0);
+    GL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *) 0));
+    GL_CALL(glEnableVertexAttribArray(0));
 
     unsigned int ibuf;
-    glGenBuffers(1, &ibuf);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), triangle_indices, GL_STATIC_DRAW);
+    GL_CALL(glGenBuffers(1, &ibuf));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), triangle_indices, GL_STATIC_DRAW));
 
     ShaderProgramSource source = parseShader("../res/shaders/basic.glsl");
     unsigned int shader = createShader(source.vertextSource, source.fragmentSource);
-    glUseProgram(shader);
+    GL_CALL(glUseProgram(shader));
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        
+        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
