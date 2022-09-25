@@ -1,8 +1,8 @@
 #include<GL/glew.h>
 #include<GLFW/glfw3.h>
 
-#include<iostream>
-using namespace std;
+#include<cstdio>
+#include<cstdlib>
 
 #define LOW_RES_WIDTH 640
 #define LOW_RES_HEIGHT 480
@@ -12,11 +12,11 @@ void glfwErrorCallback(int error, const char* description) {
 }
 
 int main(void) {
-	fprintf(stdout, "\n[APP] : Starting...\n");
+	fprintf(stdout, "\n[INFO]  : Starting...\n");
 
     // init glfw
 	if(glfwInit() == GLFW_FALSE){
-        fprintf(stderr, "[Init glfw] : Error : GLFW initialization failed\n\n");
+        fprintf(stderr, "[ERROR] : GLFW initialization failed\n\n");
 		return EXIT_FAILURE;
 	}
 
@@ -24,11 +24,11 @@ int main(void) {
 	// set error callback function for glfw
 	glfwSetErrorCallback(glfwErrorCallback);
 	
-    fprintf(stdout, "[APP] : Starting window creation...\n");
+    fprintf(stdout, "[INFO]  : Starting window creation...\n");
 
 	// height and width for window
 	int width = LOW_RES_WIDTH;
-	int height = LOW_RES_WIDTH;
+	int height = LOW_RES_HEIGHT;
 
 	// reference to primary monitor
 	GLFWmonitor* primaryMonitor = NULL;
@@ -45,21 +45,25 @@ int main(void) {
 	// create a window and context
 	GLFWwindow* window = glfwCreateWindow(width, height, "Let's teach me openGL", primaryMonitor, NULL);
 	if(window == NULL){
-        fprintf(stderr, "[glfw createwindow] : Error : Window or Context creation failed\n\n");
+        fprintf(stderr, "[ERROR] : Window or Context creation failed\n\n");
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
 
 	// make this the current context
 	glfwMakeContextCurrent(window);
+    fprintf(stdout, "[INFO]  : Created window with width: %dpx and height: %dpx\n", width, height);
 
     // init glew
     GLenum error = glewInit();
     if(error != GLEW_OK){
-        fprintf(stderr, "[Init GLEW] Error: %s\n\n", glewGetErrorString(error));
+        fprintf(stderr, "[ERROR] : GLEW initialization failed. %s\n\n", glewGetErrorString(error));
         return EXIT_FAILURE;
     }
-    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    
+    // log glew and opengl versions
+    fprintf(stdout, "[INFO]  : Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    fprintf(stdout, "[INFO]  : Using GL %s\n", glGetString(GL_VERSION));
 
 	// WINDOW LOOP
 	while(!glfwWindowShouldClose(window)){
