@@ -3,5 +3,5 @@ phony: run
 run: app
 	./app
 
-app: app.cpp
+app: Application.cpp
 	g++ -pthread -o app $^ -lglfw -lGL -lXrandr -lX11 -lrt -lGL -lglut -lGLEW
