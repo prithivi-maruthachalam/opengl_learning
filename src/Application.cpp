@@ -1,3 +1,4 @@
+#include<GL/glew.h>
 #include<GLFW/glfw3.h>
 
 #include<iostream>
@@ -7,23 +8,24 @@ using namespace std;
 #define LOW_RES_HEIGHT 480
 
 void glfwErrorCallback(int error, const char* description) {
-	fprintf(stderr, "Error: %d | %s\n", error, description);
+	fprintf(stderr, "[GLFW] Error: %d | %s\n", error, description);
 }
 
 int main(void) {
-	// init glfw
+	fprintf(stdout, "\n[APP] : Starting...\n");
+
+    // init glfw
 	if(glfwInit() == GLFW_FALSE){
-		cout << "GLFW initialization failed" << endl;
+        fprintf(stderr, "[Init glfw] : Error : GLFW initialization failed\n\n");
 		return EXIT_FAILURE;
 	}
 
+   
 	// set error callback function for glfw
 	glfwSetErrorCallback(glfwErrorCallback);
 	
-	cout << "Starting window creation..." << endl;
+    fprintf(stdout, "[APP] : Starting window creation...\n");
 
-	// get primary monitor
-	
 	// height and width for window
 	int width = LOW_RES_WIDTH;
 	int height = LOW_RES_WIDTH;
@@ -43,13 +45,21 @@ int main(void) {
 	// create a window and context
 	GLFWwindow* window = glfwCreateWindow(width, height, "Let's teach me openGL", primaryMonitor, NULL);
 	if(window == NULL){
-		cout << "Window or Context creation failed" << endl;
+        fprintf(stderr, "[glfw createwindow] : Error : Window or Context creation failed\n\n");
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
 
 	// make this the current context
 	glfwMakeContextCurrent(window);
+
+    // init glew
+    GLenum error = glewInit();
+    if(error != GLEW_OK){
+        fprintf(stderr, "[Init GLEW] Error: %s\n\n", glewGetErrorString(error));
+        return EXIT_FAILURE;
+    }
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	// WINDOW LOOP
 	while(!glfwWindowShouldClose(window)){
