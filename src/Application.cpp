@@ -56,11 +56,11 @@ int main(void) {
 		// clear the screen
 		glClear(GL_COLOR_BUFFER_BIT);
 
-	glBegin(GL_TRIANGLES);	// specify that we're drawing triangles
-	glVertex2f(0.5f, 0.5f);
-	glVertex2f(-0.5f, 0.5f);
-	glVertex2f(0, -0.5f);
-	glEnd();	// end vertex specification
+        glBegin(GL_TRIANGLES);	// specify that we're drawing triangles
+        glVertex2f(0.5f, 0.5f);
+        glVertex2f(-0.5f, 0.5f);
+        glVertex2f(0, -0.5f);
+        glEnd();	// end vertex specification
 
 		// swap front and back buffers
 		glfwSwapBuffers(window);
