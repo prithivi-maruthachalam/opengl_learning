@@ -6,6 +6,8 @@
 
 #define LOW_RES_WIDTH 640
 #define LOW_RES_HEIGHT 480
+#define DIM 2
+#define TRIANGLE_VERTICES 3
 
 void glfwErrorCallback(int error, const char* description) {
 	fprintf(stderr, "[GLFW] Error: %d | %s\n", error, description);
@@ -52,8 +54,9 @@ int main(void) {
 
 	// make this the current context
 	glfwMakeContextCurrent(window);
-    fprintf(stdout, "[INFO]  : Created window with width: %dpx and height: %dpx\n", width, height);
 
+    fprintf(stdout, "[INFO]  : Created window with width: %dpx and height: %dpx\n", width, height);
+    
     // init glew
     GLenum error = glewInit();
     if(error != GLEW_OK){
@@ -65,16 +68,37 @@ int main(void) {
     fprintf(stdout, "[INFO]  : Using GLEW %s\n", glewGetString(GLEW_VERSION));
     fprintf(stdout, "[INFO]  : Using GL %s\n", glGetString(GL_VERSION));
 
+    // triangle positions
+    float positions[DIM * TRIANGLE_VERTICES] = {
+        // x    // y
+        0.5f,   0.5f,
+       -0.5f,   0.5f,
+        0,     -0.5f,
+    };
+    const int positionIndex = 0;
+
+    fprintf(stdout, "[INFO]  : Setting up buffers for triangle...\n");
+
+    // first triangle
+    unsigned int triangleBuffer;
+    glGenBuffers(1, &triangleBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, triangleBuffer);  /* Bind Buffer is analogous to selecting our buffer. So, then glBufferData is called, it knows what buffer to use. */
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(positionIndex, DIM, GL_FLOAT, GL_FALSE, sizeof(float) * DIM, (const void*)positionIndex);
+    glEnableVertexAttribArray(positionIndex);
+
+    fprintf(stdout, "[INFO]  : Buffers and Vertices set up for triangle\n");
+
+    // reset current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	// WINDOW LOOP
 	while(!glfwWindowShouldClose(window)){
 		// clear the screen
 		glClear(GL_COLOR_BUFFER_BIT);
 
-        glBegin(GL_TRIANGLES);	// specify that we're drawing triangles
-        glVertex2f(0.5f, 0.5f);
-        glVertex2f(-0.5f, 0.5f);
-        glVertex2f(0, -0.5f);
-        glEnd();	// end vertex specification
+        glDrawArrays(GL_TRIANGLES, positionIndex, TRIANGLE_VERTICES);
 
 		// swap front and back buffers
 		glfwSwapBuffers(window);
